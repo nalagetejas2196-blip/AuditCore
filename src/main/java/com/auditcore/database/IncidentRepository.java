@@ -1,4 +1,4 @@
-﻿package com.auditcore.database;
+package com.auditcore.database;
 
 import com.auditcore.Incident;
 import com.auditcore.IncidentStatus;
@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 public class IncidentRepository {
 
@@ -43,7 +44,7 @@ public class IncidentRepository {
 
     public List<Incident> findAll() throws SQLException {
         List<Incident> incidents = new ArrayList<>();
-        String sql = "SELECT id, title, description, severity, status FROM incidents ORDER BY created_at, id";
+        String sql = "SELECT id, title, description, severity, status, created_at FROM incidents ORDER BY created_at, id";
 
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql);
@@ -53,7 +54,8 @@ public class IncidentRepository {
                         result.getString("id"),
                         result.getString("title"),
                         result.getString("description"),
-                        Severity.valueOf(result.getString("severity"))
+                        Severity.valueOf(result.getString("severity")),
+                        java.time.LocalDateTime.parse(result.getString("created_at").replace(" ", "T"))
                 );
                 incident.updateStatus(
                         IncidentStatus.valueOf(result.getString("status"))
@@ -65,7 +67,7 @@ public class IncidentRepository {
     }
 
     public Optional<Incident> findById(String id) throws SQLException {
-        String sql = "SELECT id, title, description, severity, status FROM incidents WHERE id = ?";
+        String sql = "SELECT id, title, description, severity, status, created_at FROM incidents WHERE id = ?";
 
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -80,7 +82,8 @@ public class IncidentRepository {
                         result.getString("id"),
                         result.getString("title"),
                         result.getString("description"),
-                        Severity.valueOf(result.getString("severity"))
+                        Severity.valueOf(result.getString("severity")),
+                        java.time.LocalDateTime.parse(result.getString("created_at").replace(" ", "T"))
                 );
                 incident.updateStatus(
                         IncidentStatus.valueOf(result.getString("status"))

@@ -1,25 +1,30 @@
 package com.auditcore;
 
+import java.time.LocalDateTime;
+
 public class Incident {
     private final String id;
     private final String title;
     private final String description;
     private final Severity severity;
+    private final LocalDateTime createdAt;
     private IncidentStatus status;
 
     public Incident(String id, String title, String description, Severity severity) {
+        this(id, title, description, severity, null);
+    }
+
+    public Incident(String id, String title, String description,
+                    Severity severity, LocalDateTime createdAt) {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Incident ID cannot be blank.");
         }
-
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("Incident title cannot be blank.");
         }
-
         if (description == null || description.isBlank()) {
             throw new IllegalArgumentException("Incident description cannot be blank.");
         }
-
         if (severity == null) {
             throw new IllegalArgumentException("Incident severity is required.");
         }
@@ -28,6 +33,7 @@ public class Incident {
         this.title = title.trim();
         this.description = description.trim();
         this.severity = severity;
+        this.createdAt = createdAt;
         this.status = IncidentStatus.OPEN;
     }
 
@@ -47,6 +53,10 @@ public class Incident {
         return severity;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
     public IncidentStatus getStatus() {
         return status;
     }
@@ -55,7 +65,6 @@ public class Incident {
         if (status == null) {
             throw new IllegalArgumentException("Incident status is required.");
         }
-
         this.status = status;
     }
 }
