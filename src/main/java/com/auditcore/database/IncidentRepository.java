@@ -1,4 +1,4 @@
-package com.auditcore.database;
+﻿package com.auditcore.database;
 
 import com.auditcore.Incident;
 import com.auditcore.IncidentStatus;
