@@ -24,3 +24,6 @@ Thumbs.db
 auditcore.db
 auditcore.db-shm
 auditcore.db-wal
+
+# Local backup files
+*.bak

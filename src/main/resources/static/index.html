@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AuditCore | Incident Management</title>
+<style>
+:root{--ink:#292923;--muted:#85857d;--line:#e9e7df;--paper:#f8f7f3;--white:#fff;--accent:#bd5b3d;--soft:#f8e9e2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,"Segoe UI",Arial,sans-serif}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:235px;background:#fff;border-right:1px solid var(--line);padding:30px 19px;flex-shrink:0}
+.brand{font-size:23px;font-weight:800;letter-spacing:-1px}.brand span{color:var(--accent)}
+.tagline{font-size:11px;color:var(--muted);margin-top:6px}
+.nav-title{font-size:10px;letter-spacing:1.5px;color:#a09f96;margin:37px 10px 12px}
+.nav{display:flex;gap:12px;align-items:center;padding:12px 11px;border-radius:8px;font-size:13px;color:#77766e;margin:4px 0}
+.nav.active{background:var(--soft);color:var(--accent);font-weight:700}
+.nav .symbol{width:18px;text-align:center;font-size:16px}
+.side-note{margin-top:50px;padding:15px;background:#f8f6f1;border-radius:9px;font-size:12px;line-height:1.6;color:#77766e}
+.side-note strong{display:block;color:var(--ink);margin-bottom:5px}
+.main{flex:1;min-width:0;padding:35px clamp(18px,4vw,54px)}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.eyebrow{font-size:10px;letter-spacing:1.8px;color:var(--accent);font-weight:700}
+h1{font-size:30px;letter-spacing:-1px;margin:9px 0}
+.subtitle{font-size:13px;color:var(--muted)}
+.local-badge{font-size:11px;background:#fff;border:1px solid var(--line);padding:9px 12px;border-radius:20px;color:#6c6b62}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:35px 0 15px;flex-wrap:wrap}
+h2{font-size:16px;margin:0;letter-spacing:-.3px}
+.section-caption{font-size:11px;color:var(--muted);margin-top:5px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:11px;padding:19px;min-width:0}
+.stat-label{font-size:12px;color:var(--muted)}
+.stat-value{font-size:31px;font-weight:750;letter-spacing:-1px;margin:14px 0 8px}
+.stat-foot{font-size:11px;color:var(--muted)}
+.stat-mark{width:27px;height:3px;background:var(--accent);border-radius:3px;margin-bottom:15px}
+.stat:nth-child(2) .stat-mark{background:#d49b42}
+.stat:nth-child(3) .stat-mark{background:#b7473c}
+.stat:nth-child(4) .stat-mark{background:#68856c}
+.panel{background:#fff;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.toolbar{display:flex;gap:10px;padding:17px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+input,select{font:inherit;font-size:12px;padding:11px 12px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);outline:none}
+input{flex:1;min-width:180px}
+input:focus,select:focus{border-color:var(--accent)}
+table{width:100%;border-collapse:collapse;text-align:left}
+th{background:#fbfaf7;color:#88877e;font-size:10px;letter-spacing:.8px;text-transform:uppercase;font-weight:650;padding:14px 17px}
+td{padding:16px 17px;border-top:1px solid #f0eee8;font-size:12px}
+tr:hover td{background:#fdfcf9}
+.id{font-weight:700;color:var(--accent);white-space:nowrap}
+.inc-title{font-weight:650;font-size:12px}
+.desc{color:var(--muted);font-size:11px;margin-top:5px;max-width:270px;line-height:1.5}
+.pill{display:inline-block;padding:6px 9px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap}
+.critical{background:#f9e4e1;color:#a5352a}.high{background:#fbead8;color:#a85a1d}
+.medium{background:#f8f0d9;color:#8b711d}.low{background:#e8f1e7;color:#47714a}
+.status{background:#f0efe9;color:#65645b}
+.empty{text-align:center;padding:38px;color:var(--muted);font-size:13px}
+.footer{display:flex;justify-content:space-between;gap:12px;padding:15px 18px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}
+@media(max-width:1000px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.sidebar{width:190px}}
+@media(max-width:680px){.sidebar{display:none}.main{padding:24px 14px}.stats{gap:9px}.stat{padding:14px}.stat-value{font-size:26px}.panel{overflow-x:auto}table{min-width:720px}h1{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<div class="brand">Audit<span>Core</span></div>
+<div class="tagline">INCIDENT INTELLIGENCE</div>
+<div class="nav-title">WORKSPACE</div>
+<div class="nav active"><span class="symbol">â–¦</span> Overview</div>
+<div class="nav"><span class="symbol">â—ˆ</span> Incidents</div>
+<div class="nav"><span class="symbol">â—Ž</span> Investigations</div>
+<div class="nav"><span class="symbol">â‰¡</span> Audit trail</div>
+<div class="nav-title">SYSTEM</div>
+<div class="nav"><span class="symbol">âš™</span> Settings</div>
+<div class="side-note"><strong>Incident control</strong>Monitor, investigate and track security incidents from one workspace.</div>
+</aside>
+<main class="main">
+<header class="topbar">
+<div><div class="eyebrow">SECURITY OPERATIONS / OVERVIEW</div><h1>Incident overview</h1><div class="subtitle">A clear picture of your incident landscape.</div></div>
+<div class="local-badge">â— Local environment</div>
+</header>
+<div class="section-head"><div><h2>At a glance</h2><div class="section-caption">Live counts from the incidents currently displayed</div></div></div>
+<section class="stats">
+<div class="stat"><div class="stat-mark"></div><div class="stat-label">Total incidents</div><div class="stat-value" id="total">3</div><div class="stat-foot">Across all severity levels</div></div>
+<div class="stat"><div class="stat-mark"></div><div class="stat-label">Open incidents</div><div class="stat-value" id="open">3</div><div class="stat-foot">Awaiting resolution or closure</div></div>
+<div class="stat"><div class="stat-mark"></div><div class="stat-label">Critical incidents</div><div class="stat-value" id="criticalCount">1</div><div class="stat-foot">Require priority attention</div></div>
+<div class="stat"><div class="stat-mark"></div><div class="stat-label">Resolved incidents</div><div class="stat-value" id="resolved">0</div><div class="stat-foot">Resolved or closed</div></div>
+</section>
+<div class="section-head"><div><h2>Incident register</h2><div class="section-caption">Review incident details, severity and current status.</div></div></div>
+<section class="panel">
+<div class="toolbar">
+<input id="search" type="search" placeholder="Search ID, title or description..." aria-label="Search incidents">
+<select id="severity" aria-label="Filter by severity"><option value="">All severities</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
+<select id="status" aria-label="Filter by status"><option value="">All statuses</option><option>OPEN</option><option>INVESTIGATING</option><option>RESOLVED</option><option>CLOSED</option></select>
+</div>
+<table>
+<thead><tr><th>Incident</th><th>Severity</th><th>Status</th><th>Created</th></tr></thead>
+<tbody id="incidentRows"></tbody>
+</table>
+<div class="footer"><span id="resultCount">3 incidents</span><span>AuditCore Â· Incident register</span></div>
+</section>
+</main>
+</div>
+<script>
+let incidents=[];
+const $=id=>document.getElementById(id);
+async function loadIncidents(){
+  $("resultCount").textContent="Loading incidents...";
+  try{
+    const response=await fetch("/api/incidents");
+    if(!response.ok) throw new Error("API returned "+response.status);
+    incidents=await response.json();
+    incidents=incidents.map(i=>({...i,created:"Database record"}));
+    render();
+  }catch(error){
+    $("resultCount").textContent="Could not load incidents. Check that the server is running.";
+    $("incidentRows").innerHTML='<tr><td colspan="4" class="empty">Unable to connect to the incidents API.</td></tr>';
+  }
+}
+function render(){
+  const q=$("search").value.toLowerCase();
+  const sev=$("severity").value,st=$("status").value;
+  const filtered=incidents.filter(i=>(i.id+" "+i.title+" "+i.description).toLowerCase().includes(q)&&(!sev||i.severity===sev)&&(!st||i.status===st));
+  $("total").textContent=incidents.length;
+  $("open").textContent=incidents.filter(i=>i.status==="OPEN"||i.status==="INVESTIGATING").length;
+  $("criticalCount").textContent=incidents.filter(i=>i.severity==="CRITICAL"&&i.status!=="RESOLVED"&&i.status!=="CLOSED").length;
+  $("resolved").textContent=incidents.filter(i=>i.status==="RESOLVED"||i.status==="CLOSED").length;
+  $("incidentRows").innerHTML=filtered.length?filtered.map(i=>`<tr><td><div class="id">${i.id}</div><div class="inc-title">${i.title}</div><div class="desc">${i.description}</div></td><td><span class="pill ${i.severity.toLowerCase()}">${i.severity}</span></td><td><select class="row-status" data-id="${i.id}" aria-label="Change status for ${i.id}">${["OPEN","INVESTIGATING","RESOLVED","CLOSED"].map(status=>`<option value="${status}" ${i.status===status?"selected":""}>${status}</option>`).join("")}</select></td><td>${i.created}</td></tr>`).join(""):'<tr><td colspan="4" class="empty">No incidents match your filters.</td></tr>';
+  $("resultCount").textContent=`Showing ${filtered.length} of ${incidents.length} incidents`;
+}
+$("incidentRows").addEventListener("change",async event=>{
+ const control=event.target;
+ if(!control.matches(".row-status")) return;
+ const incident=incidents.find(i=>i.id===control.dataset.id);
+ if(!incident) return;
+ const previous=incident.status;
+ control.disabled=true;
+ try{
+  const response=await fetch("/api/incidents/status",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:incident.id,status:control.value})});
+  const result=await response.json();
+  if(!response.ok) throw new Error(result.error||result.message||"Status update failed");
+  incident.status=control.value;
+  render();
+ }catch(error){
+  control.value=previous;
+  alert("Could not save status: "+error.message);
+ }finally{
+  control.disabled=false;
+ }
+});
+["search","severity","status"].forEach(id=>$(id).addEventListener("input",render));
+loadIncidents();
+</script>
+</body>
+</html>
+'@ | Set-Content -Path "src\main\resources\static\index.html" -Encoding UTF8
