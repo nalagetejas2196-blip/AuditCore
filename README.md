@@ -2,22 +2,17 @@
 
 **Incident Management & Audit Tracking System**
 
-AuditCore is a Java-based software project focused on making incident tracking more organized and manageable. It brings incident records, status updates, and monitoring together in one place through a web dashboard.
+AuditCore is a Java-based incident management project that brings incident records, status updates, and monitoring together through a web dashboard.
 
-The project is built to demonstrate how a backend application, REST APIs, persistent storage, and a simple web interface can work together in a practical incident management workflow.
+## Features
+- Incident tracking and management
+- Status updates: Open, Investigating, Resolved, and Closed
+- Dashboard summaries and incident status filtering
+- SQLite database persistence
+- REST API for retrieving incidents and updating status
+- Automated tests using JUnit 5
 
-## What It Can Do
-
-- **Manage incidents:** Work with incident records in a centralized application.
-- **Track status:** Update incidents as they move through Open, Investigating, Resolved, and Closed states.
-- **Monitor activity:** View incident information and summary statistics through the dashboard.
-- **Filter records:** Narrow the incident list by status.
-- **Keep data persistent:** Use SQLite to retain incident records and status changes.
-- **Communicate through APIs:** Retrieve incident data and submit status updates through HTTP endpoints.
-- **Run automated tests:** Use JUnit 5 to test application behaviour.
-
-## Built With
-
+## Technology Stack
 - Java 21
 - Apache Maven
 - SQLite
@@ -27,18 +22,39 @@ The project is built to demonstrate how a backend application, REST APIs, persis
 - Git and GitHub
 
 ## Getting Started
+### Prerequisites
+Install JDK 21 and Apache Maven.
 
-### Requirements
-
-Install Java Development Kit (JDK) 21 and Apache Maven before running the project.
-
-### Clone the Repository
-
+### Clone the repository
 ```bash
 git clone https://github.com/nalagetejas2196-blip/AuditCore.git
 cd AuditCore
+```
 
+### Build
+```bash
+mvn compile
+```
 
+### Run tests
+```bash
+mvn test
+```
 
+### Dashboard
+Start the application using its configured launch method, then open http://127.0.0.1:8080.
 
-;
+## API Endpoints
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/incidents` | Retrieve incident records |
+| POST | `/api/incidents/status` | Update an incident status |
+| GET | `/` | Open the dashboard |
+
+## Project Scope
+AuditCore is a working prototype demonstrating incident tracking, status management, dashboard monitoring, REST API communication, and database persistence. Authentication, role-based access control, comprehensive audit history, advanced analytics, and production hardening are potential future improvements.
+
+## About
+Developed by **Tejas Nalage**, a third-year Computer Engineering student.
+
+Repository: https://github.com/nalagetejas2196-blip/AuditCore
