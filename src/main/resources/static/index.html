@@ -108,7 +108,7 @@ async function loadIncidents(){
     const response=await fetch("/api/incidents");
     if(!response.ok) throw new Error("API returned "+response.status);
     incidents=await response.json();
-    incidents=incidents.map(i=>({...i,created:"Database record"}));
+    incidents=incidents.map(i=>({...i,created:i.createdAt ? new Date(i.createdAt).toLocaleString() : "—"}));
     render();
   }catch(error){
     $("resultCount").textContent="Could not load incidents. Check that the server is running.";

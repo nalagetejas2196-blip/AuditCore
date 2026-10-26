@@ -49,7 +49,8 @@ public class AuditCoreWebServer {
                         .append("\"title\":\"").append(escape(incident.getTitle())).append("\",")
                         .append("\"description\":\"").append(escape(incident.getDescription())).append("\",")
                         .append("\"severity\":\"").append(incident.getSeverity().name()).append("\",")
-                        .append("\"status\":\"").append(incident.getStatus().name()).append("\"")
+                        .append("\"status\":\"").append(incident.getStatus().name()).append("\",")
+                        .append("\"createdAt\":\"").append(incident.getCreatedAt() == null ? "" : incident.getCreatedAt().toString()).append("\"")
                         .append("}");
                 }
 
