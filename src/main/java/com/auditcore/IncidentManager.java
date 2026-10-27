@@ -108,6 +108,25 @@ public class IncidentManager {
             + "Resolved incidents: " + countByStatus(IncidentStatus.RESOLVED) + System.lineSeparator()
             + "Closed incidents: " + countByStatus(IncidentStatus.CLOSED);
     }
+    public Incident[] searchIncidents(String query) {
+        if (query == null || query.isBlank()) {
+            return new Incident[0];
+        }
+
+        String term = query.trim().toLowerCase(java.util.Locale.ROOT);
+        java.util.List<Incident> matches = new java.util.ArrayList<>();
+
+        for (int i = 0; i < count; i++) {
+            Incident incident = incidents[i];
+            if (incident.getTitle().toLowerCase(java.util.Locale.ROOT).contains(term)
+                    || incident.getDescription().toLowerCase(java.util.Locale.ROOT).contains(term)) {
+                matches.add(incident);
+            }
+        }
+
+        return matches.toArray(new Incident[0]);
+    }
+
     public int getIncidentCount() {
         return count;
     }

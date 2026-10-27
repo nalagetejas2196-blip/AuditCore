@@ -226,4 +226,59 @@ class IncidentManagerTest {
         assertTrue(summary.contains("Resolved incidents: 0"));
         assertTrue(summary.contains("Closed incidents: 0"));
     }
+
+    @Test
+    void shouldSearchIncidentsByTitleIgnoringCase() {
+        IncidentManager manager = new IncidentManager();
+        manager.addIncident(new Incident(
+            "INC-1001", "Network Alert", "Unusual traffic detected.", Severity.HIGH
+        ));
+        manager.addIncident(new Incident(
+            "INC-1002", "Login Warning", "Repeated login attempts.", Severity.MEDIUM
+        ));
+
+        Incident[] results = manager.searchIncidents("NETWORK");
+
+        assertEquals(1, results.length);
+        assertEquals("INC-1001", results[0].getId());
+    }
+
+    @Test
+    void shouldSearchIncidentsByDescription() {
+        IncidentManager manager = new IncidentManager();
+        manager.addIncident(new Incident(
+            "INC-1003", "Security Alert", "Suspicious file access detected.", Severity.CRITICAL
+        ));
+
+        Incident[] results = manager.searchIncidents("file access");
+
+        assertEquals(1, results.length);
+        assertEquals("INC-1003", results[0].getId());
+    }
+
+    @Test
+    void shouldReturnAllMatchingIncidents() {
+        IncidentManager manager = new IncidentManager();
+        manager.addIncident(new Incident(
+            "INC-1004", "Login Alert", "Repeated failures.", Severity.HIGH
+        ));
+        manager.addIncident(new Incident(
+            "INC-1005", "Login Warning", "Unusual activity.", Severity.MEDIUM
+        ));
+
+        assertEquals(2, manager.searchIncidents("login").length);
+    }
+
+    @Test
+    void shouldReturnNoResultsForEmptySearch() {
+        IncidentManager manager = new IncidentManager();
+        manager.addIncident(new Incident(
+            "INC-1006", "Network Alert", "Unusual traffic.", Severity.LOW
+        ));
+
+        assertEquals(0, manager.searchIncidents("").length);
+        assertEquals(0, manager.searchIncidents("   ").length);
+        assertEquals(0, manager.searchIncidents(null).length);
+    }
+
 }
