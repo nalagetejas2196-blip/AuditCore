@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -64,18 +64,18 @@ tr:hover td{background:#fdfcf9}
 <div class="brand">Audit<span>Core</span></div>
 <div class="tagline">INCIDENT INTELLIGENCE</div>
 <div class="nav-title">WORKSPACE</div>
-<div class="nav active"><span class="symbol">â–¦</span> Overview</div>
-<div class="nav"><span class="symbol">â—ˆ</span> Incidents</div>
-<div class="nav"><span class="symbol">â—Ž</span> Investigations</div>
-<div class="nav"><span class="symbol">â‰¡</span> Audit trail</div>
+<div class="nav active" onclick="showSection('overview')"><span class="symbol">•</span> Overview</div>
+<div class="nav" onclick="showSection('incidents')"><span class="symbol">•</span> Incidents</div>
+<div class="nav" onclick="showSection('investigations')"><span class="symbol">•</span> Investigations</div>
+<div class="nav" onclick="showSection('audit')"><span class="symbol">•</span> Audit trail</div>
 <div class="nav-title">SYSTEM</div>
-<div class="nav"><span class="symbol">âš™</span> Settings</div>
+<div class="nav"><span class="symbol">•</span> Settings</div>
 <div class="side-note"><strong>Incident control</strong>Monitor, investigate and track security incidents from one workspace.</div>
 </aside>
 <main class="main">
 <header class="topbar">
 <div><div class="eyebrow">SECURITY OPERATIONS / OVERVIEW</div><h1>Incident overview</h1><div class="subtitle">A clear picture of your incident landscape.</div></div>
-<div class="local-badge">â— Local environment</div>
+<div class="local-badge">¢€” Local environment</div>
 </header>
 <div class="section-head"><div><h2>At a glance</h2><div class="section-caption">Live counts from the incidents currently displayed</div></div></div>
 <section class="stats">
@@ -95,7 +95,7 @@ tr:hover td{background:#fdfcf9}
 <thead><tr><th>Incident</th><th>Severity</th><th>Status</th><th>Created</th></tr></thead>
 <tbody id="incidentRows"></tbody>
 </table>
-<div class="footer"><span id="resultCount">3 incidents</span><span>AuditCore Â· Incident register</span></div>
+<div class="footer"><span id="resultCount">3 incidents</span><span>AuditCore ‚· Incident register</span></div>
 </section>
 </main>
 </div>
@@ -108,7 +108,7 @@ async function loadIncidents(){
     const response=await fetch("/api/incidents");
     if(!response.ok) throw new Error("API returned "+response.status);
     incidents=await response.json();
-    incidents=incidents.map(i=>({...i,created:i.createdAt ? new Date(i.createdAt).toLocaleString() : "—"}));
+    incidents=incidents.map(i=>({...i,created:i.createdAt ? new Date(i.createdAt).toLocaleString() : "€”"}));
     render();
   }catch(error){
     $("resultCount").textContent="Could not load incidents. Check that the server is running.";
@@ -148,7 +148,12 @@ $("incidentRows").addEventListener("change",async event=>{
 });
 ["search","severity","status"].forEach(id=>$(id).addEventListener("input",render));
 loadIncidents();
+function showSection(section){document.querySelector(".topbar h1").textContent=({overview:"Incident overview",incidents:"Incident register",investigations:"Investigations",audit:"Audit trail"})[section]||"Incident overview";document.querySelector(".eyebrow").textContent="SECURITY OPERATIONS / "+section.toUpperCase();document.querySelectorAll(".sidebar .nav[onclick]").forEach(n=>n.classList.toggle("active",n.getAttribute("onclick").indexOf(section)>-1));if(section==="investigations"){$("incidentRows").innerHTML=incidents.filter(i=>i.status==="INVESTIGATING").map(i=>`<tr><td>${i.id} — ${i.title}</td><td>${i.severity}</td><td>${i.status}</td><td>${i.created}</td></tr>`).join("")||`<tr><td colspan="4">No incidents currently under investigation.</td></tr>`;$("resultCount").textContent="Incidents under investigation";}else if(section==="audit"){$("incidentRows").innerHTML=`<tr><td colspan="4">Persistent audit history is not implemented yet.</td></tr>`;$("resultCount").textContent="Audit trail";}else{render();}}
 </script>
 </body>
 </html>
 '@ | Set-Content -Path "src\main\resources\static\index.html" -Encoding UTF8
+
+
+
+
