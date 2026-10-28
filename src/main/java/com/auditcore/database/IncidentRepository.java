@@ -1,110 +1,117 @@
 package com.auditcore.database;
 
-import com.auditcore.Incident;
 import com.auditcore.IncidentStatus;
-import com.auditcore.Severity;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.time.LocalDateTime;
 
 public class IncidentRepository {
 
-    public boolean save(Incident incident) throws SQLException {
-        if (incident == null) {
-            throw new IllegalArgumentException("Incident cannot be null");
-        }
-
-        String sql = """
-                INSERT INTO incidents (id, title, description, severity, status)
-                VALUES (?, ?, ?, ?, ?)
-                """;
-
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, incident.getId());
-            statement.setString(2, incident.getTitle());
-            statement.setString(3, incident.getDescription());
-            statement.setString(4, incident.getSeverity().name());
-            statement.setString(5, incident.getStatus().name());
-            statement.executeUpdate();
+    public boolean save(com.auditcore.Incident incident) throws SQLException {
+        if (incident == null) throw new IllegalArgumentException("Incident cannot be null");
+        String sql = "INSERT INTO incidents (id,title,description,severity,status) VALUES (?,?,?,?,?)";
+        try (Connection c = DatabaseManager.getConnection(); PreparedStatement s = c.prepareStatement(sql)) {
+            s.setString(1, incident.getId());
+            s.setString(2, incident.getTitle());
+            s.setString(3, incident.getDescription());
+            s.setString(4, incident.getSeverity().name());
+            s.setString(5, incident.getStatus().name());
+            s.executeUpdate();
             return true;
-        } catch (SQLException exception) {
-            if (exception.getErrorCode() == 19) {
-                return false;
-            }
-            throw exception;
+        } catch (SQLException e) {
+            if (e.getErrorCode() == 19) return false;
+            throw e;
         }
     }
 
-    public List<Incident> findAll() throws SQLException {
-        List<Incident> incidents = new ArrayList<>();
-        String sql = "SELECT id, title, description, severity, status, created_at FROM incidents ORDER BY created_at, id";
-
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet result = statement.executeQuery()) {
-            while (result.next()) {
-                Incident incident = new Incident(
-                        result.getString("id"),
-                        result.getString("title"),
-                        result.getString("description"),
-                        Severity.valueOf(result.getString("severity")),
-                        java.time.LocalDateTime.parse(result.getString("created_at").replace(" ", "T"))
-                );
-                incident.updateStatus(
-                        IncidentStatus.valueOf(result.getString("status"))
-                );
-                incidents.add(incident);
-            }
+    public List<com.auditcore.Incident> findAll() throws SQLException {
+        List<com.auditcore.Incident> items = new ArrayList<>();
+        String sql = "SELECT id,title,description,severity,status,created_at FROM incidents ORDER BY created_at,id";
+        try (Connection c = DatabaseManager.getConnection(); PreparedStatement s = c.prepareStatement(sql); ResultSet r = s.executeQuery()) {
+            while (r.next()) items.add(readIncident(r));
         }
-        return incidents;
+        return items;
     }
 
-    public Optional<Incident> findById(String id) throws SQLException {
-        String sql = "SELECT id, title, description, severity, status, created_at FROM incidents WHERE id = ?";
-
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, id);
-
-            try (ResultSet result = statement.executeQuery()) {
-                if (!result.next()) {
-                    return Optional.empty();
-                }
-
-                Incident incident = new Incident(
-                        result.getString("id"),
-                        result.getString("title"),
-                        result.getString("description"),
-                        Severity.valueOf(result.getString("severity")),
-                        java.time.LocalDateTime.parse(result.getString("created_at").replace(" ", "T"))
-                );
-                incident.updateStatus(
-                        IncidentStatus.valueOf(result.getString("status"))
-                );
-                return Optional.of(incident);
+    public java.util.Optional<com.auditcore.Incident> findById(String id) throws SQLException {
+        String sql = "SELECT id,title,description,severity,status,created_at FROM incidents WHERE id=?";
+        try (Connection c = DatabaseManager.getConnection(); PreparedStatement s = c.prepareStatement(sql)) {
+            s.setString(1, id);
+            try (ResultSet r = s.executeQuery()) {
+                return r.next() ? java.util.Optional.of(readIncident(r)) : java.util.Optional.empty();
             }
         }
     }
 
     public boolean updateStatus(String id, IncidentStatus status) throws SQLException {
-        if (id == null || status == null) {
-            return false;
-        }
+        if (id == null || status == null) return false;
+        try (Connection c = DatabaseManager.getConnection()) {
+            c.setAutoCommit(false);
+            try {
+                String oldStatus = null;
+                try (PreparedStatement s = c.prepareStatement("SELECT status FROM incidents WHERE id=?")) {
+                    s.setString(1, id);
+                    try (ResultSet r = s.executeQuery()) {
+                        if (!r.next()) {
+                            c.rollback();
+                            return false;
+                        }
+                        oldStatus = r.getString("status");
+                    }
+                }
 
-        String sql = "UPDATE incidents SET status = ? WHERE id = ?";
+                try (PreparedStatement s = c.prepareStatement("UPDATE incidents SET status=? WHERE id=?")) {
+                    s.setString(1, status.name());
+                    s.setString(2, id);
+                    s.executeUpdate();
+                }
 
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, status.name());
-            statement.setString(2, id);
-            return statement.executeUpdate() > 0;
+                if (!oldStatus.equals(status.name())) {
+                    try (PreparedStatement s = c.prepareStatement(
+                            "INSERT INTO audit_logs (incident_id,action,old_status,new_status,actor,details) VALUES (?,?,?,?,?,?)")) {
+                        s.setString(1, id);
+                        s.setString(2, "STATUS_CHANGED");
+                        s.setString(3, oldStatus);
+                        s.setString(4, status.name());
+                        s.setString(5, "local-user");
+                        s.setString(6, "Incident status updated");
+                        s.executeUpdate();
+                    }
+                }
+                c.commit();
+                return true;
+            } catch (SQLException e) {
+                c.rollback();
+                throw e;
+            } finally {
+                c.setAutoCommit(true);
+            }
         }
+    }
+
+    public List<String[]> findAuditLogs() throws SQLException {
+        List<String[]> logs = new ArrayList<>();
+        String sql = "SELECT id,incident_id,action,old_status,new_status,actor,details,created_at FROM audit_logs ORDER BY id DESC";
+        try (Connection c = DatabaseManager.getConnection(); PreparedStatement s = c.prepareStatement(sql); ResultSet r = s.executeQuery()) {
+            while (r.next()) logs.add(new String[]{
+                r.getString("id"), r.getString("incident_id"), r.getString("action"),
+                r.getString("old_status"), r.getString("new_status"), r.getString("actor"),
+                r.getString("details"), r.getString("created_at")
+            });
+        }
+        return logs;
+    }
+
+    private com.auditcore.Incident readIncident(ResultSet r) throws SQLException {
+        com.auditcore.Incident incident = new com.auditcore.Incident(
+            r.getString("id"), r.getString("title"), r.getString("description"),
+            com.auditcore.Severity.valueOf(r.getString("severity")),
+            java.time.LocalDateTime.parse(r.getString("created_at").replace(" ", "T"))
+        );
+        incident.updateStatus(IncidentStatus.valueOf(r.getString("status")));
+        return incident;
     }
 }

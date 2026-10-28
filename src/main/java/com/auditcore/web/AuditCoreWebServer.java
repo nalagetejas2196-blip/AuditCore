@@ -65,6 +65,37 @@ public class AuditCoreWebServer {
             }
         });
 
+        server.createContext("/api/audit", exchange -> {
+            try {
+                if (!exchange.getRequestMethod().equals("GET")) {
+                    send(exchange, 405, "{\"error\":\"Method not allowed\"}");
+                    return;
+                }
+                StringBuilder json = new StringBuilder("[");
+                boolean first = true;
+                for (String[] log : repository.findAuditLogs()) {
+                    if (!first) json.append(",");
+                    first = false;
+                    json.append("{")
+                        .append("\"id\":\"").append(escape(log[0])).append("\",")
+                        .append("\"incidentId\":\"").append(escape(log[1])).append("\",")
+                        .append("\"action\":\"").append(escape(log[2])).append("\",")
+                        .append("\"oldStatus\":\"").append(escape(log[3] == null ? "" : log[3])).append("\",")
+                        .append("\"newStatus\":\"").append(escape(log[4] == null ? "" : log[4])).append("\",")
+                        .append("\"actor\":\"").append(escape(log[5] == null ? "" : log[5])).append("\",")
+                        .append("\"details\":\"").append(escape(log[6] == null ? "" : log[6])).append("\",")
+                        .append("\"createdAt\":\"").append(escape(log[7] == null ? "" : log[7])).append("\"}");
+                }
+                json.append("]");
+                send(exchange, 200, json.toString());
+            } catch (SQLException exception) {
+                exception.printStackTrace();
+                send(exchange, 500, "{\"error\":\"Unable to load audit logs\"}");
+            } catch (IOException exception) {
+                exception.printStackTrace();
+                exchange.close();
+            }
+        });
         server.createContext("/api/incidents/status", exchange -> {
             try {
                 if (!exchange.getRequestMethod().equals("POST")) {
@@ -184,3 +215,4 @@ public class AuditCoreWebServer {
         return escaped.toString();
     }
 }
+
