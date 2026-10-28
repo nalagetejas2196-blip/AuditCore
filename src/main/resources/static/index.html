@@ -75,7 +75,7 @@ tr:hover td{background:#fdfcf9}
 <main class="main">
 <header class="topbar">
 <div><div class="eyebrow">SECURITY OPERATIONS / OVERVIEW</div><h1>Incident overview</h1><div class="subtitle">A clear picture of your incident landscape.</div></div>
-<div class="local-badge">¢€” Local environment</div>
+<div class="local-badge">Local environment</div>
 </header>
 <div class="section-head"><div><h2>At a glance</h2><div class="section-caption">Live counts from the incidents currently displayed</div></div></div>
 <section class="stats">
@@ -100,7 +100,7 @@ tr:hover td{background:#fdfcf9}
 </main>
 </div>
 <script>
-let incidents=[];
+let incidents=[]; let auditLogs=[]; let activeSection="overview";
 const $=id=>document.getElementById(id);
 async function loadIncidents(){
   $("resultCount").textContent="Loading incidents...";
@@ -146,13 +146,19 @@ $("incidentRows").addEventListener("change",async event=>{
   control.disabled=false;
  }
 });
-["search","severity","status"].forEach(id=>$(id).addEventListener("input",render));
+["search","severity","status"].forEach(id=>$(id).addEventListener("input",()=>{if(activeSection==="audit"){showSection("audit");}else{render();}}));
 loadIncidents();
-function showSection(section){document.querySelector(".topbar h1").textContent=({overview:"Incident overview",incidents:"Incident register",investigations:"Investigations",audit:"Audit trail"})[section]||"Incident overview";document.querySelector(".eyebrow").textContent="SECURITY OPERATIONS / "+section.toUpperCase();document.querySelectorAll(".sidebar .nav[onclick]").forEach(n=>n.classList.toggle("active",n.getAttribute("onclick").indexOf(section)>-1));if(section==="investigations"){$("incidentRows").innerHTML=incidents.filter(i=>i.status==="INVESTIGATING").map(i=>`<tr><td>${i.id} — ${i.title}</td><td>${i.severity}</td><td>${i.status}</td><td>${i.created}</td></tr>`).join("")||`<tr><td colspan="4">No incidents currently under investigation.</td></tr>`;$("resultCount").textContent="Incidents under investigation";}else if(section==="audit"){fetch("/api/audit").then(r=>{if(!r.ok)throw new Error("API error");return r.json();}).then(logs=>{$("incidentRows").innerHTML=logs.length?logs.map(l=>`<tr><td><div class="id">${l.incidentId}</div><div class="inc-title">${l.action}</div><div class="desc">${l.details}</div></td><td>${l.oldStatus||"—"} → ${l.newStatus||"—"}</td><td>${l.actor}</td><td>${l.createdAt}</td></tr>`).join(""):`<tr><td colspan="4" class="empty">No audit events recorded yet. Change an incident status to create an entry.</td></tr>`;$("resultCount").textContent=`${logs.length} audit events`;}).catch(()=>{$("incidentRows").innerHTML=`<tr><td colspan="4" class="empty">Unable to load audit history.</td></tr>`;$("resultCount").textContent="Audit trail unavailable";});}else{render();}}
+function showSection(section){activeSection=section;document.querySelector(".topbar h1").textContent=({overview:"Incident overview",incidents:"Incident register",investigations:"Investigations",audit:"Audit trail"})[section]||"Incident overview";document.querySelector(".eyebrow").textContent="SECURITY OPERATIONS / "+section.toUpperCase();document.querySelectorAll(".sidebar .nav[onclick]").forEach(n=>n.classList.toggle("active",n.getAttribute("onclick").indexOf(section)>-1));if(section==="investigations"){$("incidentRows").innerHTML=incidents.filter(i=>i.status==="INVESTIGATING").map(i=>`<tr><td>${i.id} — ${i.title}</td><td>${i.severity}</td><td>${i.status}</td><td>${i.created}</td></tr>`).join("")||`<tr><td colspan="4">No incidents currently under investigation.</td></tr>`;$("resultCount").textContent="Incidents under investigation";}else if(section==="audit"){fetch("/api/audit").then(r=>{if(!r.ok)throw new Error("API error");return r.json();}).then(logs=>{auditLogs=logs;const q=$("search").value.toLowerCase();const st=$("status").value;logs=logs.filter(l=>(l.incidentId+" "+l.action+" "+l.actor+" "+l.details+" "+l.oldStatus+" "+l.newStatus).toLowerCase().includes(q)&&(!st||l.oldStatus===st||l.newStatus===st));$("incidentRows").innerHTML=logs.length?logs.map(l=>`<tr><td><div class="id">${l.incidentId}</div><div class="inc-title">${l.action}</div><div class="desc">${l.details}</div></td><td>${l.oldStatus||"—"} → ${l.newStatus||"—"}</td><td>${l.actor}</td><td>${l.createdAt}</td></tr>`).join(""):`<tr><td colspan="4" class="empty">No audit events recorded yet. Change an incident status to create an entry.</td></tr>`;$("resultCount").textContent=`${logs.length} audit events`;}).catch(()=>{$("incidentRows").innerHTML=`<tr><td colspan="4" class="empty">Unable to load audit history.</td></tr>`;$("resultCount").textContent="Audit trail unavailable";});}else{render();}}
 </script>
 </body>
 </html>
 '@ | Set-Content -Path "src\main\resources\static\index.html" -Encoding UTF8
+
+
+
+
+
+
 
 
 
